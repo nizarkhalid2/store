@@ -5,12 +5,17 @@ export default function RegisterPage() {
   return (
     <section className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-4">
       <h1 className="mb-6 text-center text-2xl font-bold">إنشاء حساب</h1>
-      <form action={registerCustomer} className="space-y-4">
-        <input
-          name="fullName"
-          required
-          placeholder="الاسم الكامل"
-          className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
+      <form
+  action={async (formData) => {
+    await registerCustomer(formData);
+  }}
+  className="space-y-4"
+>
+  <input
+    name="fullName"
+    required
+    placeholder="الاسم الكامل"
+    className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
         />
         <input
           name="email"
