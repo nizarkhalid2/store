@@ -1,13 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { importProductFromUrl, publishProduct } from "@/server/actions/admin-products";
+import {
+  importProductFromUrl,
+  publishProduct,
+} from "@/server/actions/admin-products";
 
-type Category = { id: string; name: string };
+type Category = {
+  id: string;
+  name: string;
+};
 
 type PreviewState =
   | { kind: "idle" }
-  | { kind: "manual"; message: string; source: string }
+  | {
+      kind: "manual";
+      message: string;
+      source: string;
+    }
   | {
       kind: "preview";
       source: string;
@@ -16,14 +26,22 @@ type PreviewState =
       images: string[];
     };
 
-export function ImportProductForm({ categories }: { categories: Category[] }) {
+export function ImportProductForm({
+  categories,
+}: {
+  categories: Category[];
+}) {
   const [url, setUrl] = useState("");
-  const [state, setState] = useState<PreviewState>({ kind: "idle" });
+  const [state, setState] = useState<PreviewState>({
+    kind: "idle",
+  });
+
   const [isPending, startTransition] = useTransition();
 
   function handleImport() {
     startTransition(async () => {
       const result = await importProductFromUrl(url);
+
       if (result.status === "SUCCESS") {
         setState({
           kind: "preview",
@@ -33,9 +51,17 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
           images: result.data.images,
         });
       } else if (result.status === "MANUAL") {
-        setState({ kind: "manual", message: result.message, source: result.source });
+        setState({
+          kind: "manual",
+          message: result.message,
+          source: result.source,
+        });
       } else {
-        setState({ kind: "manual", message: result.message, source: "MANUAL" });
+        setState({
+          kind: "manual",
+          message: result.message,
+          source: "MANUAL",
+        });
       }
     });
   }
@@ -43,7 +69,10 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
   return (
     <div className="max-w-2xl space-y-6">
       <div>
-        <label className="mb-1 block text-sm font-medium">رابط المنتج (Temu أو AliExpress)</label>
+        <label className="mb-1 block text-sm font-medium">
+          رابط المنتج (Temu أو AliExpress)
+        </label>
+
         <div className="flex gap-2">
           <input
             value={url}
@@ -51,7 +80,9 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
             placeholder="https://..."
             className="flex-1 rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
           />
+
           <button
+            type="button"
             onClick={handleImport}
             disabled={!url || isPending}
             className="rounded-lg bg-oman-green px-6 font-bold text-white disabled:opacity-50"
@@ -68,32 +99,60 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
       )}
 
       {(state.kind === "preview" || state.kind === "manual") && (
-        <form action={publishProduct} className="space-y-3 border-t border-neutral-200 pt-4 dark:border-neutral-800">
-          <input type="hidden" name="supplierUrl" value={url} />
+        <form
+          action={async (formData: FormData) => {
+            await publishProduct(formData);
+          }}
+          className="space-y-3 border-t border-neutral-200 pt-4 dark:border-neutral-800"
+        >
+          <input
+            type="hidden"
+            name="supplierUrl"
+            value={url}
+          />
+
           <input
             type="hidden"
             name="importSource"
-            value={state.kind === "preview" ? state.source : "MANUAL"}
+            value={
+              state.kind === "preview"
+                ? state.source
+                : "MANUAL"
+            }
           />
 
           <input
             name="name"
             required
-            defaultValue={state.kind === "preview" ? state.title : ""}
+            defaultValue={
+              state.kind === "preview"
+                ? state.title
+                : ""
+            }
             placeholder="اسم المنتج"
             className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
           />
+
           <textarea
             name="description"
             required
-            defaultValue={state.kind === "preview" ? state.description : ""}
+            defaultValue={
+              state.kind === "preview"
+                ? state.description
+                : ""
+            }
             placeholder="الوصف"
             rows={4}
             className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
           />
+
           <textarea
             name="images"
-            defaultValue={state.kind === "preview" ? state.images.join("\n") : ""}
+            defaultValue={
+              state.kind === "preview"
+                ? state.images.join("\n")
+                : ""
+            }
             placeholder="روابط الصور (رابط في كل سطر)"
             rows={3}
             className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
@@ -107,6 +166,7 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
               placeholder="سعر المورد (اختياري، للأدمن فقط)"
               className="rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
             />
+
             <input
               name="sellingPrice"
               type="number"
@@ -115,6 +175,7 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
               placeholder="سعر البيع (ريال عماني)"
               className="rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
             />
+
             <input
               name="originalPrice"
               type="number"
@@ -122,6 +183,7 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
               placeholder="السعر الأصلي قبل الخصم (اختياري)"
               className="rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
             />
+
             <input
               name="stock"
               type="number"
@@ -136,13 +198,21 @@ export function ImportProductForm({ categories }: { categories: Category[] }) {
             required
             className="w-full rounded-lg border border-neutral-300 p-3 dark:border-neutral-700 dark:bg-neutral-900"
           >
-            <option value="">اختر التصنيف</option>
+            <option value="">
+              اختر التصنيف
+            </option>
+
             {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
             ))}
           </select>
 
-          <button className="w-full rounded-full bg-oman-red py-3 font-bold text-white">
+          <button
+            type="submit"
+            className="w-full rounded-full bg-oman-red py-3 font-bold text-white"
+          >
             نشر المنتج
           </button>
         </form>
