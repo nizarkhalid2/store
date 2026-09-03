@@ -2,8 +2,6 @@
 
 import { db } from "@/lib/db";
 
-// Public, customer-facing queries. supplierUrl / supplierPrice / importSource
-// are intentionally never selected here — they only exist in admin queries.
 const PUBLIC_PRODUCT_SELECT = {
   id: true,
   name: true,
@@ -14,8 +12,30 @@ const PUBLIC_PRODUCT_SELECT = {
   discountPct: true,
   stock: true,
   categoryId: true,
-  images: { orderBy: { position: "asc" as const } },
-  variants: true,
+
+  images: {
+    select: {
+      id: true,
+      url: true,
+      altText: true,
+      position: true,
+    },
+    orderBy: {
+      position: "asc" as const,
+    },
+  },
+
+  variants: {
+    select: {
+      id: true,
+      productId: true,
+      name: true,
+      value: true,
+      extraPrice: true,
+      stock: true,
+    },
+  },
+
   createdAt: true,
 } satisfies Parameters<typeof db.product.findMany>[0]["select"];
 
@@ -30,9 +50,20 @@ export async function getPublishedProducts(params?: {
 
   const where = {
     isPublished: true,
-    ...(params?.categorySlug ? { category: { slug: params.categorySlug } } : {}),
+    ...(params?.categorySlug
+      ? {
+          category: {
+            slug: params.categorySlug,
+          },
+        }
+      : {}),
     ...(params?.search
-      ? { name: { contains: params.search, mode: "insensitive" as const } }
+      ? {
+          name: {
+            contains: params.search,
+            mode: "insensitive" as const,
+          },
+        }
       : {}),
   };
 
@@ -42,20 +73,79 @@ export async function getPublishedProducts(params?: {
       select: PUBLIC_PRODUCT_SELECT,
       skip: (page - 1) * pageSize,
       take: pageSize,
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     }),
-    db.product.count({ where }),
+
+    db.product.count({
+      where,
+    }),
   ]);
 
-  return { items, total, page, pageSize };
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+  };
 }
 
 export async function getProductBySlug(slug: string) {
   return db.product.findFirst({
-    where: { slug, isPublished: true },
+    where: {
+      slug,
+      isPublished: true,
+    },
+
     select: {
-      ...PUBLIC_PRODUCT_SELECT,
-      reviews: { where: { isApproved: true }, include: { user: { select: { fullName: true } } } },
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      sellingPrice: true,
+      originalPrice: true,
+      discountPct: true,
+      stock: true,
+      categoryId: true,
+
+      images: {
+        select: {
+          id: true,
+          url: true,
+          altText: true,
+          position: true,
+        },
+        orderBy: {
+          position: "asc",
+        },
+      },
+
+      variants: {
+        select: {
+          id: true,
+          productId: true,
+          name: true,
+          value: true,
+          extraPrice: true,
+          stock: true,
+        },
+      },
+
+      createdAt: true,
+
+      reviews: {
+        where: {
+          isApproved: true,
+        },
+        include: {
+          user: {
+            select: {
+              fullName: true,
+            },
+          },
+        },
+      },
     },
   });
 }
