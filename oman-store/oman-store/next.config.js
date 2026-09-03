@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "**.aliexpress.com" },
@@ -8,4 +9,5 @@ const nextConfig = {
     ],
   },
 };
+
 module.exports = nextConfig;
