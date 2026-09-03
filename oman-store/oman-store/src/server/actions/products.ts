@@ -1,5 +1,6 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 const PUBLIC_PRODUCT_SELECT = {
@@ -21,7 +22,7 @@ const PUBLIC_PRODUCT_SELECT = {
       position: true,
     },
     orderBy: {
-      position: "asc" as const,
+      position: "asc",
     },
   },
 
@@ -37,7 +38,7 @@ const PUBLIC_PRODUCT_SELECT = {
   },
 
   createdAt: true,
-} satisfies Parameters<typeof db.product.findMany>[0]["select"];
+} satisfies Prisma.ProductSelect;
 
 export async function getPublishedProducts(params?: {
   categorySlug?: string;
@@ -45,11 +46,12 @@ export async function getPublishedProducts(params?: {
   page?: number;
   pageSize?: number;
 }) {
-  const page = params?.page ?? 1;
-  const pageSize = params?.pageSize ?? 24;
+  const page = Math.max(1, params?.page ?? 1);
+  const pageSize = Math.max(1, params?.pageSize ?? 24);
 
-  const where = {
+  const where: Prisma.ProductWhereInput = {
     isPublished: true,
+
     ...(params?.categorySlug
       ? {
           category: {
@@ -57,11 +59,12 @@ export async function getPublishedProducts(params?: {
           },
         }
       : {}),
-    ...(params?.search
+
+    ...(params?.search?.trim()
       ? {
           name: {
-            contains: params.search,
-            mode: "insensitive" as const,
+            contains: params.search.trim(),
+            mode: "insensitive",
           },
         }
       : {}),
@@ -130,6 +133,9 @@ export async function getProductBySlug(slug: string) {
           extraPrice: true,
           stock: true,
         },
+        orderBy: {
+          name: "asc",
+        },
       },
 
       createdAt: true,
@@ -138,12 +144,19 @@ export async function getProductBySlug(slug: string) {
         where: {
           isApproved: true,
         },
-        include: {
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
           user: {
             select: {
               fullName: true,
             },
           },
+        },
+        orderBy: {
+          createdAt: "desc",
         },
       },
     },
