@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-tajawal: "Tajawal", sans-serif;
+}
+
+body {
+  font-family: var(--font-tajawal);
+}
+
+/* Subtle Omani geometric pattern used as a light section background,
+   never as a busy repeating texture. */
+.pattern-oman {
+  background-image: radial-gradient(circle at 1px 1px, theme(colors.oman.gold / 15%) 1px, transparent 0);
+  background-size: 24px 24px;
+}
